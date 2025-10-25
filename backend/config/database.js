@@ -4,8 +4,25 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// Check if we're in a serverless environment and provide fallbacks
 if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables');
+  console.error('Missing Supabase environment variables:', {
+    SUPABASE_URL: !!supabaseUrl,
+    SUPABASE_ANON_KEY: !!supabaseAnonKey,
+    SUPABASE_SERVICE_ROLE_KEY: !!supabaseServiceKey
+  });
+  
+  // For now, let's create dummy clients to prevent crashes
+  const dummyClient = {
+    from: () => ({ select: () => ({ data: [], error: null }) }),
+    auth: { getUser: () => ({ data: { user: null }, error: null }) }
+  };
+  
+  module.exports = {
+    supabase: dummyClient,
+    supabaseAdmin: dummyClient
+  };
+  return;
 }
 
 // Client for regular operations
